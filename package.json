@@ -8,7 +8,9 @@
     "cradle": "~0.6.7",
     "restify": "~2.8.1",
     "restify-validator": "~0.3.1",
-    "serialport": "~1.4.6"
+    "serialport": "~1.4.6",
+    "request": "~2.45.0",
+    "wake_on_lan": "0.0.3"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,9 @@
 var config = require('./config.js');
 var restify = require('restify');
 var cradle = require('cradle');
+var request = require("request");
+var wol = require('wake_on_lan');
+
 var SerialPort = require("serialport").SerialPort
 var serialPort = new SerialPort(config.serial.port, {
   baudrate: config.serial.baudrate
@@ -20,6 +23,20 @@ serialPort.open(function (err) {
 
 // power_plugs is supposed to get filled by a serial read function
 var power_plugs = {"rack" : { plug_states: [0,0,0,0,0,0] }};
+
+function xbmcSend(command, req, res, next) {
+  url = "http://" + config.xbmc.ip + "/" + config.xbmc.api + encodeURIComponent(config.xbmc.json.replace("%c", command));
+  request(url, function(error, response, body) {
+    res.send(body);
+  });
+}
+function xbmcOff(req, res, next) {
+  xbmcSend(config.xbmc.off_method, req, res, next);
+}
+function xbmcOn(req, res, next) {
+  wol.wake(config.xbmc.mac);
+  res.send("ok");
+}
 
 function plugState(req, res, next) {
   serialPort.write("\02I0148\03");
@@ -44,6 +61,8 @@ var server = restify.createServer({
 });
 
 server.pre(restify.sanitizePath());
+server.get('/xbmc/off' , xbmcOff);
+server.get('/xbmc/on' , xbmcOn);
 server.get('/power_plug/:socket_name' , plugState);
 server.get('/power_plug/:socket_name/:plug_id/on' , plugOn);
 server.get('/power_plug/:socket_name/:plug_id/off' , plugOff);
