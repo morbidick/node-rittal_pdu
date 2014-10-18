@@ -25,7 +25,9 @@ serialPort.open(function (err) {
 var power_plugs = {"rack" : { plug_states: [0,0,0,0,0,0] }};
 
 function xbmcSend(command, req, res, next) {
-  url = "http://" + config.xbmc.ip + "/" + config.xbmc.api + encodeURIComponent(config.xbmc.json.replace("%c", command));
+  json = config.xbmc.json;
+  json.method = command;
+  url = "http://" + config.xbmc.user + ":" + config.xbmc.pw + "@" + config.xbmc.ip + "/" + config.xbmc.api +  encodeURIComponent(JSON.stringify(json));
   request(url, function(error, response, body) {
     res.send(body);
   });
