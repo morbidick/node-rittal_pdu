@@ -11,10 +11,7 @@ config.serial.baudrate = 19200;
 
 config.xbmc = {};
 config.xbmc.mac = "00:26:9e:c6:c7:14";
-config.xbmc.ip = "192.168.1.5";
-config.xbmc.api = "jsonrpc?request=";
-config.xbmc.json = {jsonrpc:"2.0",method:"",id:1};
-config.xbmc.off_method = "System.Shutdown";
+config.xbmc.url = "192.168.1.5";
 config.xbmc.user = "user";
 config.xbmc.pw = "pw";
 
