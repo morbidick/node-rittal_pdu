@@ -1,0 +1,12 @@
+var config = {}
+
+config.server = {};
+config.server.port = 8000;
+config.server.url = "localhost";
+config.server.name = "LabNet";
+
+config.serial = {};
+config.serial.port = "/dev/ttyUSB0";
+config.serial.baudrate = 19200;
+
+module.exports = config;

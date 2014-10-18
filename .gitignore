@@ -1,0 +1,8 @@
+config.js
+talk.md
+node_modules/
+~*
+*~
+._*
+.DS_Store
+*.swp
