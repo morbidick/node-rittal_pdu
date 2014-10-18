@@ -2,26 +2,9 @@ var config = require('./config.js');
 var restify = require('restify');
 var cradle = require('cradle');
 var xbmc = require('./modules/xbmc.js');
+var power_plug = require('./modules/rittal_pdu_7200.0014.js');
 
-var SerialPort = require("serialport").SerialPort
-var serialPort = new SerialPort(config.serial.port, {
-  baudrate: config.serial.baudrate
-}, false);
-
-// write all incoming data to screen
-serialPort.open(function (err) {
-  if (err) {
-     console.log(err);
-     return;
-  } else {    
-    serialPort.on("data", function (data) {
-      console.log("serial-incoming: "+data);
-    });
-  }
-});
-
-// power_plugs is supposed to get filled by a serial read function
-var power_plugs = {"rack" : { plug_states: [0,0,0,0,0,0] }};
+power_plug.init(config.serial.port, config.serial.baudrate);
 
 function xbmcOff(req, res, next) {
   res.send(xbmc.off(config.xbmc.url, config.xbmc.user, config.xbmc.pw))
@@ -34,21 +17,13 @@ function xbmcStatus(req, res, next) {
 }
 
 function plugStatus(req, res, next) {
-  serialPort.write("\02I0148\03");
-  res.send({socket: req.params.socket_name,
-            plugs: power_plugs[req.params.socket_name].plug_states });
+  res.send(power_plug.status(req.params.socket_name));
 }
 function plugOn(req, res, next) {
-  power_plugs[req.params.socket_name].plug_states[req.params.plug_id] = 1;
-  serialPort.write("\02J01aaaaaaaaaa3F0000000000000000000F000048\03");
-  res.send({socket: req.params.socket_name,
-            plugs: power_plugs[req.params.socket_name].plug_states });
+  res.send(power_plug.on(req.params.socket_name, req.params.plug_id));
 }
 function plugOff(req, res, next) {
-  power_plugs[req.params.socket_name].plug_states[req.params.plug_id] = 0;
-  serialPort.write("\02J01aaaaaaaaaa000000000000000000000F00003D\03");
-  res.send({socket: req.params.socket_name,
-            plugs: power_plugs[req.params.socket_name].plug_states });
+  res.send(power_plug.on(req.params.socket_name, req.params.plug_id));
 }
 
 var server = restify.createServer({
