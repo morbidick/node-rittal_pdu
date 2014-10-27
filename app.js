@@ -31,13 +31,13 @@ function xbmcStatus(req, res, next) {
 }
 
 function plugStatus(req, res, next) {
-  res.send(power_plug.status(req.params.socket_name));
+  res.send(power_plug.status(req.params.socket_name, true));
 }
 function plugOn(req, res, next) {
   res.send(power_plug.on(req.params.socket_name, req.params.plug_id));
 }
 function plugOff(req, res, next) {
-  res.send(power_plug.on(req.params.socket_name, req.params.plug_id));
+  res.send(power_plug.off(req.params.socket_name, req.params.plug_id));
 }
 
 var server = restify.createServer({
