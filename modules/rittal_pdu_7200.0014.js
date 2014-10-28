@@ -78,24 +78,33 @@ module.exports = {
             name: sockets[socket].name,
             plugs: sockets[socket].plug_states });
   },
-  setSocket: function(id, plug_states, name, low_alarm, high_alarm, callback) {
+  setSocket: function(id, plug_states, opt_params, callback) {
 
-    var low_alarm = "0";
-    var high_alarm = "F";
-    if (arguments.length == 3) { //TODO: make the optional parameters more awesome
-      var name = sockets[id].name;
-      var callback = arguments[2];
+    var params = {
+      low_alarm: 0,
+      high_alarm: 15,
+      name: sockets[id].name
+    }
+
+    if (arguments.length == 4) {
+      for(var i in params) {
+        if(typeof(opt_params[i]) !== "undefined") {
+          params[i] = opt_params[i];
+        }
+      }
+    } else {
+      var callback = arguments[3];
     }
 
     var return_value = startbyte + "j6A" + endbyte;
     var command = "J"
                 + pad_string(id.toString(), 2)
-                + pad_string(name, 10, true)
+                + pad_string(params.name, 10, true)
                 + bitmap_to_hex(plug_states)
                 + "0000000000000000000"
-                + high_alarm
+                + params.high_alarm.toString(16).toUpperCase()
                 + "000"
-                + low_alarm;
+                + params.low_alarm.toString(16).toUpperCase();
 
     command = startbyte
             + command
