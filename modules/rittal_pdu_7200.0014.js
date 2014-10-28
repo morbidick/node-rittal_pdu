@@ -1,21 +1,31 @@
-//'use strict'; // TODO: cant use octal escape sequences in strict mode
+'use strict';
 
 var serialPort;
-var startbyte = "\02";
-var endbyte = "\03";
-var power_plugs = { "rack": {
-                              id: 1,
-                              plug_states: [false,false,false,false,false,false] 
-                            }
+var startbyte = '\u0002';
+var endbyte = '\u0003';
+var sockets = { 1: {
+                          name: "rack",
+                          timestamp: 0,
+                          plug_states: {
+                                        1: false,
+                                        2: false,
+                                        3: false,
+                                        4: false,
+                                        5: false,
+                                        6: false
+                                        }
+                        }
                   };
 
 var bitmap_to_hex = function(binary_array) {
   var temp = 0,
+  length = Object.keys(binary_array).length,
   result = "";
 
-  for ( var i=binary_array.length-1; i>=0; i-- ) {
-    temp += binary_array[i]*Math.pow(2,i%4);
-    if ( i%4 == 0 ) {
+
+  for ( var i=length; i>0; i-- ) {
+    temp += binary_array[i]*Math.pow(2,(i-1)%4);
+    if ( (i-1)%4 == 0 ) {
       result += temp.toString(16);
       temp = 0;
     }
@@ -88,25 +98,34 @@ module.exports = {
 
     console.log('Rittal PDU initialized!');
   },
-  status: function(socket, force_refresh) {
+  get_socket: function(socket, force_refresh) {
     if (force_refresh) {
-      request_state(power_plugs[socket].id);
+      request_state(socket);
       // TODO: return async status;
     }
-    return({socket: socket,
-            plugs: power_plugs[socket].plug_states });
+    return({id: socket,
+            name: sockets[socket].name,
+            plugs: sockets[socket].plug_states });
   },
-  on: function(socket, plug) {
-    power_plugs[socket].plug_states[plug-1] = true;
-    send_command(power_plugs[socket].id, socket, power_plugs[socket].plug_states);
-    return({socket: socket,
-            plugs: power_plugs[socket].plug_states});
+  set_socket: function(socket, plug_states) {
+    sockets[socket].plug_states = plug_states;
+    send_command(socket, sockets[socket].name, sockets[socket].plug_states);
+    return({id: socket,
+            name: sockets[socket].name,
+            plugs: sockets[socket].plug_states });
   },
-  off: function(socket, plug) {
-    power_plugs[socket].plug_states[plug-1] = false;
-    send_command(power_plugs[socket].id, socket, power_plugs[socket].plug_states);
-    return({socket: socket,
-            plugs: power_plugs[socket].plug_states});
+  set_plug_on: function(socket, plug) {
+    sockets[socket].plug_states[plug] = true;
+    send_command(socket, sockets[socket].name, sockets[socket].plug_states);
+    return({id: socket,
+            name: sockets[socket].name,
+            plugs: sockets[socket].plug_states});
+  },
+  set_plug_off: function(socket, plug) {
+    sockets[socket].plug_states[plug] = false;
+    send_command(socket, sockets[socket].name, sockets[socket].plug_states);
+    return({id: socket,
+            name: sockets[socket].name,
+            plugs: sockets[socket].plug_states});
   }
 }
-

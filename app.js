@@ -31,13 +31,13 @@ function xbmcStatus(req, res, next) {
 }
 
 function plugStatus(req, res, next) {
-  res.send(power_plug.status(req.params.socket_name, true));
+  res.send(power_plug.get_socket(req.params.socket_id, true));
 }
 function plugOn(req, res, next) {
-  res.send(power_plug.on(req.params.socket_name, req.params.plug_id));
+  res.send(power_plug.set_plug_on(req.params.socket_id, req.params.plug_id));
 }
 function plugOff(req, res, next) {
-  res.send(power_plug.off(req.params.socket_name, req.params.plug_id));
+  res.send(power_plug.set_plug_off(req.params.socket_id, req.params.plug_id));
 }
 
 var server = restify.createServer({
@@ -49,9 +49,9 @@ server.pre(restify.sanitizePath());
 server.get('/xbmc' , xbmcStatus);
 server.get('/xbmc/on' , xbmcOn);
 server.get('/xbmc/off' , xbmcOff);
-server.get('/power_plug/:socket_name' , plugStatus);
-server.get('/power_plug/:socket_name/:plug_id/on' , plugOn);
-server.get('/power_plug/:socket_name/:plug_id/off' , plugOff);
+server.get('/power_plug/:socket_id' , plugStatus);
+server.get('/power_plug/:socket_id/:plug_id/on' , plugOn);
+server.get('/power_plug/:socket_id/:plug_id/off' , plugOff);
 
 server.listen(config.server.port, config.server.url, function(){
     console.log('%s listening at %s:%s ', config.server.name , config.server.url, config.server.port);
