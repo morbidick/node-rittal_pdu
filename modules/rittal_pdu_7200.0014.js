@@ -5,19 +5,6 @@ var startbyte = '\u0002';
 var endbyte = '\u0003';
 var max_request_time = 500;
 var timeout_error = { code: "SerialTimeout", message: "The Rittal PDU took to long to answer!"}
-var sockets = { 1: {
-                          name: "rack",
-                          timestamp: 0,
-                          plug_states: {
-                                        1: false,
-                                        2: false,
-                                        3: false,
-                                        4: false,
-                                        5: false,
-                                        6: false
-                                        }
-                        }
-                  };
 
 var bitmap_to_hex = function(binary_array) {
   var temp = 0,
@@ -58,6 +45,14 @@ var pad_string = function(string, length, pad_right, padding) {
 
   return string;
 }
+var request_state = function(id) {
+  var command = "I"
+              + pad_string(id.toString(), 2);
+
+  command = startbyte + command + pad_string(checksum(command), 2) + endbyte;
+
+  serialPort.write(command);
+}
 
 module.exports = {
   init: function(port) {
@@ -83,7 +78,7 @@ module.exports = {
     var params = {
       low_alarm: 0,
       high_alarm: 15,
-      name: sockets[id].name
+      name: "empty"
     }
 
     if (arguments.length == 4) {
