@@ -31,9 +31,16 @@ function xbmcStatus(req, res, next) {
 }
 
 function getSocket(req, res, next) {
-  res.send(power_plug.getSocket(req.params.socket_id, true));
+  power_plug.getSocket(req.params.socket_id, function(error) {
+    if(!error) {
+      res.send(this);
+    } else {
+      res.send(error)
+    }
+  })
 }
 function setSocket(req, res, next) {
+  // TODO: check for id and body!
   power_plug.setSocket(req.params.socket_id, req.body, function(error) {
     if(!error) {
       res.send("success");

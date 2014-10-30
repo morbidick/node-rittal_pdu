@@ -22,6 +22,22 @@ var bitmap_to_hex = function(binary_array) {
 
   return result.toUpperCase();
 }
+var hex_to_bitmap = function(data) {
+  var bit_count = 6;
+  data = parseInt(data,16);
+  var result = {};
+
+  for (var i = bit_count; i > 0; i--) {
+    if (data >= Math.pow(2,i-1)) {
+      result[i] = true;
+      data -= Math.pow(2,i-1);
+    } else {
+      result[i] = false;
+    }
+  }
+
+  return result;
+}
 
 var checksum = function(string) {
   var checksum = 0;
@@ -45,33 +61,72 @@ var pad_string = function(string, length, pad_right, padding) {
 
   return string;
 }
-var request_state = function(id) {
-  var command = "I"
-              + pad_string(id.toString(), 2);
 
-  command = startbyte + command + pad_string(checksum(command), 2) + endbyte;
-
-  serialPort.write(command);
+var status_to_object = function(data) {
+  return {
+    raw: data,
+    id: parseInt(data.slice(1,3)),
+    name: data.slice(6,16),
+    plug_states: hex_to_bitmap(data.slice(30,32)),
+    power_consumption: parseInt(data.slice(23,27)),
+    high_alarm: parseInt(data.slice(35,36), 16),
+    low_alarm: parseInt(data.slice(39,40), 16),
+  }
 }
 
 module.exports = {
   init: function(port) {
+
     serialPort = port;
+    console.log('Rittal PDU: initialized!');
 
-    serialPort.on("data", function (data) {
-      console.log("serial-incoming: "+data);
-    });
-
-    console.log('Rittal PDU initialized!');
   },
-  getSocket: function(socket, callback) {
-    if (callback) {
-      request_state(socket);
-      // TODO: return async status;
+  getSocket: function(id, callback) {
+
+    var temp = "";
+
+    var command = "I"
+                + pad_string(id.toString(), 2);
+
+    command = startbyte + command + pad_string(checksum(command), 2) + endbyte;
+
+    console.log("Rittal PDU: sending %s", command);
+    serialPort.write(command);
+
+    var dataHandler = function (data) {
+      data = data.toString();
+      for(var i = 0; i < data.length; i++) {
+        switch(data.charAt(i)) {
+          case startbyte:
+            temp = "";
+            break;
+
+          case endbyte:
+            clearTimeout(timeoutHandler);
+            serialPort.removeListener("data", dataHandler);
+
+            if( temp.charAt(0) == "i" && checksum(temp.slice(0,-2)) == temp.slice(-2)) {
+              console.log("Rittal PDU: received status with right checksum");
+              callback.apply(status_to_object(temp));
+            }
+            break;
+
+          default:
+            temp += data.charAt(i);
+        }
+      }
+    };
+
+    var timeoutHandler = function () {
+      serialPort.removeListener("data", dataHandler);
+      if (typeof(callback) == 'function') {
+        callback(timeout_error);
+      }
     }
-    return({id: socket,
-            name: sockets[socket].name,
-            plugs: sockets[socket].plug_states });
+
+    serialPort.on("data", dataHandler);
+    setTimeout(timeoutHandler, max_request_time);
+
   },
   setSocket: function(id, plug_states, opt_params, callback) {
 
@@ -106,29 +161,29 @@ module.exports = {
             + pad_string(checksum(command), 2)
             + endbyte;
 
-    console.log("Rittal PDU sending: %s", command);
+    console.log("Rittal PDU: sending %s", command);
     serialPort.write(command);
 
-    var waitForSuccess = function (data) {
+    var dataHandler = function (data) {
       if (data == return_value) {
-        clearTimeout(timeout);
+        clearTimeout(timeoutHandler);
         console.log("Rittal PDU: success");
-        serialPort.removeListener("data", waitForSuccess);
+        serialPort.removeListener("data", dataHandler);
         if (typeof(callback) == 'function') {
           callback();
         }
       }
     };
 
-    var timeout = function () {
-      serialPort.removeListener("data", waitForSuccess);
+    var timeoutHandler = function () {
+      serialPort.removeListener("data", dataHandler);
       if (typeof(callback) == 'function') {
         callback(timeout_error);
       }
     }
 
-    serialPort.on("data", waitForSuccess);
-    setTimeout(timeout, max_request_time);
+    serialPort.on("data", dataHandler);
+    setTimeout(timeoutHandler, max_request_time);
 
   }
 }
