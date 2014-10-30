@@ -64,13 +64,13 @@ var pad_string = function(string, length, pad_right, padding) {
 
 var status_to_object = function(data) {
   return {
-    raw: data,
-    id: parseInt(data.slice(1,3)),
-    name: data.slice(6,16),
-    plug_states: hex_to_bitmap(data.slice(30,32)),
-    power_consumption: parseInt(data.slice(23,27)),
-    high_alarm: parseInt(data.slice(35,36), 16),
-    low_alarm: parseInt(data.slice(39,40), 16),
+    "raw": data,
+    "id": parseInt(data.slice(1,3)),
+    "name": data.slice(6,16),
+    "plug_states": hex_to_bitmap(data.slice(30,32)),
+    "power_consumption": parseInt(data.slice(23,27)),
+    "high_alarm": parseInt(data.slice(35,36), 16),
+    "low_alarm": parseInt(data.slice(39,40), 16),
   }
 }
 
@@ -107,7 +107,11 @@ module.exports = {
 
             if( temp.charAt(0) == "i" && checksum(temp.slice(0,-2)) == temp.slice(-2)) {
               console.log("Rittal PDU: received status with right checksum");
-              callback.apply(status_to_object(temp));
+              if (typeof(callback) === 'function') {
+                callback.call(status_to_object(temp));
+              } else {
+                return status_to_object(temp);
+              }
             }
             break;
 
@@ -119,7 +123,7 @@ module.exports = {
 
     var timeoutHandler = function () {
       serialPort.removeListener("data", dataHandler);
-      if (typeof(callback) == 'function') {
+      if (typeof(callback) === 'function') {
         callback(timeout_error);
       }
     }
@@ -128,33 +132,22 @@ module.exports = {
     setTimeout(timeoutHandler, max_request_time);
 
   },
-  setSocket: function(id, plug_states, opt_params, callback) {
-
-    var params = {
-      low_alarm: 0,
-      high_alarm: 15,
-      name: "empty"
-    }
-
-    if (arguments.length == 4) {
-      for(var i in params) {
-        if(typeof(opt_params[i]) !== "undefined") {
-          params[i] = opt_params[i];
-        }
-      }
-    } else {
-      var callback = arguments[3];
-    }
+  setSocket: function(options, callback) {
+    var id = options.id || 1;
+    var name = options.name || "default";
+    var plug_states = options.plug_states || { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false} ;
+    var low_alarm = options.low_alarm || 0;
+    var high_alarm = options.high_alarm || 15;
 
     var return_value = startbyte + "j6A" + endbyte;
     var command = "J"
                 + pad_string(id.toString(), 2)
-                + pad_string(params.name, 10, true)
+                + pad_string(name, 10, true)
                 + bitmap_to_hex(plug_states)
                 + "0000000000000000000"
-                + params.high_alarm.toString(16).toUpperCase()
+                + high_alarm.toString(16).toUpperCase()
                 + "000"
-                + params.low_alarm.toString(16).toUpperCase();
+                + low_alarm.toString(16).toUpperCase();
 
     command = startbyte
             + command
@@ -169,15 +162,15 @@ module.exports = {
         clearTimeout(timeoutHandler);
         console.log("Rittal PDU: success");
         serialPort.removeListener("data", dataHandler);
-        if (typeof(callback) == 'function') {
-          callback();
+        if (typeof(callback) === 'function') {
+          callback.call();
         }
       }
     };
 
     var timeoutHandler = function () {
       serialPort.removeListener("data", dataHandler);
-      if (typeof(callback) == 'function') {
+      if (typeof(callback) === 'function') {
         callback(timeout_error);
       }
     }

@@ -41,7 +41,8 @@ function getSocket(req, res, next) {
 }
 function setSocket(req, res, next) {
   // TODO: check for id and body!
-  power_plug.setSocket(req.params.socket_id, req.body, function(error) {
+
+  power_plug.setSocket(req.body, function(error) {
     if(!error) {
       res.send("success");
     } else {
@@ -62,7 +63,7 @@ server.get('/xbmc' , xbmcStatus);
 server.get('/xbmc/on' , xbmcOn);
 server.get('/xbmc/off' , xbmcOff);
 server.get('/power_plug/:socket_id' , getSocket);
-server.put('/power_plug/:socket_id' , setSocket);
+server.put('/power_plug' , setSocket);
 
 server.listen(config.server.port, config.server.url, function(){
     console.log('%s listening at %s:%s ', config.server.name , config.server.url, config.server.port);
