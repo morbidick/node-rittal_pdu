@@ -1,6 +1,8 @@
 'use strict';
 
+var SerialPort = require("serialport").SerialPort;
 var serialPort;
+var baudrate = 19200;
 var startbyte = '\u0002';
 var endbyte = '\u0003';
 var max_request_time = 500;
@@ -75,10 +77,13 @@ var status_to_object = function(data) {
 }
 
 module.exports = {
-  init: function(port) {
+  init: function(port, callback) {
 
-    serialPort = port;
-    console.log('Rittal PDU: initialized!');
+    serialPort = new SerialPort(port, {
+      baudrate: baudrate
+    }, false);
+
+    serialPort.open(callback);
 
   },
   getSocket: function(id, callback) {
@@ -90,7 +95,6 @@ module.exports = {
 
     command = startbyte + command + pad_string(checksum(command), 2) + endbyte;
 
-    console.log("Rittal PDU: sending %s", command);
     serialPort.write(command);
 
     var dataHandler = function (data) {
@@ -106,7 +110,7 @@ module.exports = {
             serialPort.removeListener("data", dataHandler);
 
             if( temp.charAt(0) == "i" && checksum(temp.slice(0,-2)) == temp.slice(-2)) {
-              console.log("Rittal PDU: received status with right checksum");
+              // Rittal PDU: received status with right checksum
               if (typeof(callback) === 'function') {
                 callback.call(status_to_object(temp));
               } else {
@@ -125,6 +129,8 @@ module.exports = {
       serialPort.removeListener("data", dataHandler);
       if (typeof(callback) === 'function') {
         callback(timeout_error);
+      } else {
+        return timeout_error;
       }
     }
 
@@ -154,13 +160,11 @@ module.exports = {
             + pad_string(checksum(command), 2)
             + endbyte;
 
-    console.log("Rittal PDU: sending %s", command);
     serialPort.write(command);
 
     var dataHandler = function (data) {
       if (data == return_value) {
         clearTimeout(timeoutHandler);
-        console.log("Rittal PDU: success");
         serialPort.removeListener("data", dataHandler);
         if (typeof(callback) === 'function') {
           callback.call();

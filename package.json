@@ -1,22 +1,24 @@
 {
-  "name": "labnet",
-  "version": "0.0.1",
-  "description": "Central Server",
-  "author": "Lukas Mohrbacher",
-  "main": "app.js",
-  "scripts": {
-    "start": "node ./app.js"
+  "name": "rittal_pdu",
+  "version": "0.1.0",
+  "description": "Allows easy control of Rittal PDU 7200.0014 power plugs.",
+  "author": {
+    "name": "Lukas Mohrbacher",
+    "email": "lukas@mohrbacher.me",
+    "url": "http://www.madways.de"
   },
-  "dependencies": {
-    "cradle": "~0.6.7",
-    "restify": "~2.8.1",
-    "restify-validator": "~0.3.1",
-    "serialport": "~1.4.6",
-    "request": "~2.45.0",
-    "wake_on_lan": "0.0.3"
-  },
+  "main": "./rittal_pdu_7200.0014",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git://github.com/morbidick/node-rittal_pdu.git"
+  },
+  "maintainers": [
+    {
+      "name": "Lukas Mohrbacher",
+      "email": "lukas@mohrbacher.me"
+    }
+  ],
+  "dependencies": {
+    "serialport": "~1.4.6"
   }
 }
