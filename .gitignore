@@ -1,5 +1,7 @@
+node_modules/*
 ~*
 *~
 ._*
 .DS_Store
 *.swp
+todo.md

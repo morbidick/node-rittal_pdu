@@ -1,29 +1,31 @@
 'use strict';
 
-var SerialPort = require("serialport").SerialPort;
+var SerialPort_module = require("serialport");
+var SerialPort = SerialPort_module.SerialPort;
 var serialPort;
 var baudrate = 19200;
 var startbyte = '\u0002';
 var endbyte = '\u0003';
 var max_request_time = 500;
-var timeout_error = { code: "SerialTimeout", message: "The Rittal PDU took to long to answer!"}
+var timeout_error = { code: "SerialTimeout", message: "The Rittal PDU took to long to answer!"};
 
-var bitmap_to_hex = function(binary_array) {
+var bitmap_to_hex = function (binary_array) {
   var temp = 0,
   length = Object.keys(binary_array).length,
   result = "";
 
 
-  for ( var i=length; i>0; i-- ) {
+  for (var i = length; i>0; i--) {
     temp += binary_array[i]*Math.pow(2,(i-1)%4);
-    if ( (i-1)%4 == 0 ) {
+    if ( (i-1)%4 === 0 ) {
       result += temp.toString(16);
       temp = 0;
     }
   }
 
   return result.toUpperCase();
-}
+};
+
 var hex_to_bitmap = function(data) {
   var bit_count = 6;
   data = parseInt(data,16);
@@ -39,7 +41,7 @@ var hex_to_bitmap = function(data) {
   }
 
   return result;
-}
+};
 
 var checksum = function(string) {
   var checksum = 0;
@@ -47,7 +49,7 @@ var checksum = function(string) {
     checksum = checksum ^ string.charCodeAt(i);
   }
   return checksum.toString(16).toUpperCase();
-}
+};
 
 var pad_string = function(string, length, pad_right, padding) {
   var length = length || 10;
@@ -62,7 +64,7 @@ var pad_string = function(string, length, pad_right, padding) {
   }
 
   return string;
-}
+};
 
 var status_to_object = function(data) {
   return {
@@ -73,8 +75,8 @@ var status_to_object = function(data) {
     "power_consumption": parseInt(data.slice(23,27)),
     "high_alarm": parseInt(data.slice(35,36), 16),
     "low_alarm": parseInt(data.slice(39,40), 16),
-  }
-}
+  };
+};
 
 module.exports = {
   init: function(port, callback) {
@@ -132,7 +134,7 @@ module.exports = {
       } else {
         return timeout_error;
       }
-    }
+    };
 
     serialPort.on("data", dataHandler);
     setTimeout(timeoutHandler, max_request_time);
@@ -177,10 +179,10 @@ module.exports = {
       if (typeof(callback) === 'function') {
         callback(timeout_error);
       }
-    }
+    };
 
     serialPort.on("data", dataHandler);
     setTimeout(timeoutHandler, max_request_time);
 
   }
-}
+};
