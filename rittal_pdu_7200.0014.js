@@ -6,6 +6,7 @@ var serialPort;
 var baudrate = 19200;
 var startbyte = '\u0002';
 var endbyte = '\u0003';
+var stopbyte = '\u0000';
 var max_request_time = 500;
 var timeout_error = { code: "SerialTimeout", message: "The Rittal PDU took to long to answer!"};
 
@@ -51,26 +52,48 @@ var checksum = function(string) {
   return checksum.toString(16).toUpperCase();
 };
 
-var pad_string = function(string, length, pad_right, padding) {
-  var length = length || 10;
+var pad_left = function(string, length, padding) {
+  var length = length || 2;
   var padding = padding || "0";
 
   while (string.length < length) {
-    if (pad_right) {
-      string += padding;
-    } else {
-      string = padding + string;
-    }
+    string = padding + string;
   }
 
   return string;
 };
 
+var pad_right = function(string, length, padding) {
+  var length = length || 10;
+  var padding = padding || "0";
+
+  if (string.length < length) {
+    string += stopbyte;
+  }
+
+  while (string.length < length) {
+    string += padding;
+  }
+
+  return string;
+};
+
+var remove_right_padding = function(string) {
+  var pos = string.indexOf(stopbyte);
+
+  if (pos !== -1) {
+    return string.slice(0,pos);
+  } else {
+    return string;
+  }
+
+}
+
 var status_to_object = function(data) {
   return {
     "raw": data,
     "id": parseInt(data.slice(1,3)),
-    "name": data.slice(6,16),
+    "name": remove_right_padding(data.slice(6,16)),
     "plug_states": hex_to_bitmap(data.slice(30,32)),
     "power_consumption": parseInt(data.slice(23,27)),
     "high_alarm": parseInt(data.slice(35,36), 16),
@@ -93,9 +116,9 @@ module.exports = {
     var temp = "";
 
     var command = "I"
-                + pad_string(id.toString(), 2);
+                + pad_left(id.toString(), 2);
 
-    command = startbyte + command + pad_string(checksum(command), 2) + endbyte;
+    command = startbyte + command + pad_left(checksum(command), 2) + endbyte;
 
     serialPort.write(command);
 
@@ -149,8 +172,8 @@ module.exports = {
 
     var return_value = startbyte + "j6A" + endbyte;
     var command = "J"
-                + pad_string(id.toString(), 2)
-                + pad_string(name, 10, true)
+                + pad_left(id.toString(), 2)
+                + pad_right(name, 10)
                 + bitmap_to_hex(plug_states)
                 + "0000000000000000000"
                 + high_alarm.toString(16).toUpperCase()
@@ -159,7 +182,7 @@ module.exports = {
 
     command = startbyte
             + command
-            + pad_string(checksum(command), 2)
+            + pad_left(checksum(command), 2)
             + endbyte;
 
     serialPort.write(command);
