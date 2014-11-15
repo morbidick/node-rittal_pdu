@@ -6,20 +6,20 @@ Simple module to control Rittal PDU power plugs.
 How to use
 ---------------
 
-Add `"rittal_pdu": "git://github.com/morbidick/node-rittal_pdu.git#master"` to your package.json and use it with `var power_plugs = require("node-rittal_pdu")` in your app.
+Add it with `npm install rittal_pdu --save` to your package.json and use it with `var power_plugs = require("rittal_pdu")` in your app.
 
 
-## init(port, callback)
+## .init(port, callback)
 
 Initializes the serial interface. 
   * The Rittal PDU 7200.0014 uses RS485 to communicate, the `port` is the corresponding serial device.
   * The `callback` is optional and is called once the write operation returns. The callback should be a function that looks like: `function (error) { ... }`
 
-## getSocket(id, callback)
+## .getSocket(id, callback)
 
 Returns the plug states and additional parameters.
   * `id` is the id of the corresponding Rittal device and should be an integer between 1 and 8.
-  * The `callback` is called once the power plug answers or the operation times out. The callback should be a function that looks like: `function (error) { ... }`. On timeout `error` contains an error message else `this` will contain an object similar to the following
+  * The `callback` is called once the power plug answers or the operation times out. The callback should be a function that looks like: `function (error, data) { ... }`. On timeout `error` contains an error message else `data` will contain an object similar to the following
 
     ````json
     {
@@ -47,10 +47,10 @@ Returns the plug states and additional parameters.
     * `power_consumption` output off all 6 plugs in Watt
     * `high_alarm` and `low_alarm` are the alarms in Amper (15 and 0 to deactivate)
 
-## getSocket(options, callback)
+## .setSocket(options, callback)
 
 Sets the plug states and additional parameters.
-  * options might look like the following object and contain none or all of the parameters:
+  * options might look like the following object and contains none or all of the following parameters:
 
     ````json
     {

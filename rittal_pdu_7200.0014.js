@@ -131,15 +131,13 @@ module.exports = {
             break;
 
           case endbyte:
-            clearTimeout(timeoutHandler);
+            clearTimeout(timeout);
             serialPort.removeListener("data", dataHandler);
 
             if( temp.charAt(0) == "i" && checksum(temp.slice(0,-2)) == temp.slice(-2)) {
               // Rittal PDU: received status with right checksum
               if (typeof(callback) === 'function') {
-                callback.call(status_to_object(temp));
-              } else {
-                return status_to_object(temp);
+                callback(false, status_to_object(temp));
               }
             }
             break;
@@ -154,13 +152,11 @@ module.exports = {
       serialPort.removeListener("data", dataHandler);
       if (typeof(callback) === 'function') {
         callback(timeout_error);
-      } else {
-        return timeout_error;
       }
     };
 
     serialPort.on("data", dataHandler);
-    setTimeout(timeoutHandler, max_request_time);
+    var timeout = setTimeout(timeoutHandler, max_request_time);
 
   },
   setSocket: function(options, callback) {
@@ -189,10 +185,10 @@ module.exports = {
 
     var dataHandler = function (data) {
       if (data == return_value) {
-        clearTimeout(timeoutHandler);
+        clearTimeout(timeout);
         serialPort.removeListener("data", dataHandler);
         if (typeof(callback) === 'function') {
-          callback.call();
+          callback(false);
         }
       }
     };
@@ -205,7 +201,7 @@ module.exports = {
     };
 
     serialPort.on("data", dataHandler);
-    setTimeout(timeoutHandler, max_request_time);
+    var timeout = setTimeout(timeoutHandler, max_request_time);
 
   }
 };

@@ -1,6 +1,6 @@
 {
   "name": "rittal_pdu",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "Allows easy control of Rittal PDU 7200.0014 power plugs.",
   "author": {
     "name": "Lukas Mohrbacher",
