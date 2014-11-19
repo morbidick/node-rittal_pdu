@@ -10,6 +10,9 @@ var stopbyte = '\u0000';
 var max_request_time = 500;
 var timeout_error = { code: "SerialTimeout", message: "The Rittal PDU took to long to answer!"};
 
+/** 
+creates a hex string from an input bitmap object similar to {1: true, 2:false}
+*/
 var bitmap_to_hex = function (binary_array) {
   var temp = 0,
   length = Object.keys(binary_array).length,
@@ -27,6 +30,9 @@ var bitmap_to_hex = function (binary_array) {
   return result.toUpperCase();
 };
 
+/** 
+creates a bitmap object similar to {1: true, 2:false} from an input hex string
+*/
 var hex_to_bitmap = function(data) {
   var bit_count = 6;
   data = parseInt(data,16);
@@ -44,6 +50,9 @@ var hex_to_bitmap = function(data) {
   return result;
 };
 
+/** 
+calculates the XOR checksum of a given string
+*/
 var checksum = function(string) {
   var checksum = 0;
   for(var i = 0; i < string.length; i++) {
@@ -52,6 +61,9 @@ var checksum = function(string) {
   return checksum.toString(16).toUpperCase();
 };
 
+/** 
+adds zeros to the beginning of a string until it has the required length
+*/
 var pad_left = function(string, length, padding) {
   var length = length || 2;
   var padding = padding || "0";
@@ -63,6 +75,9 @@ var pad_left = function(string, length, padding) {
   return string;
 };
 
+/** 
+for strings shorter then 10 bytes it adds one stopbyte and fills with zeros until length is reached
+*/
 var pad_right = function(string, length, padding) {
   var length = length || 10;
   var padding = padding || "0";
@@ -78,6 +93,9 @@ var pad_right = function(string, length, padding) {
   return string;
 };
 
+/** 
+removes everything from the input stringafter the stopbyte
+*/
 var remove_right_padding = function(string) {
   var pos = string.indexOf(stopbyte);
 
@@ -87,15 +105,31 @@ var remove_right_padding = function(string) {
     return string;
   }
 
-}
+};
 
+/** 
+parses a string of hex numbers and returns an integer
+example: A1 returns 101
+*/
+var hex_string_to_int = function(string) {
+  var result = 0;
+  var length = string.length;
+  for(var i=0; i < length; i++) {
+    result += parseInt(string[i],16)*Math.pow(10, string.length-i-1);
+  }
+  return result;
+};
+
+/** 
+slices an input string and returns an object
+*/
 var status_to_object = function(data) {
   return {
     "raw": data,
     "id": parseInt(data.slice(1,3)),
     "name": remove_right_padding(data.slice(6,16)),
     "plug_states": hex_to_bitmap(data.slice(30,32)),
-    "power_consumption": parseInt(data.slice(23,27), 16),
+    "power_consumption": hex_string_to_int(data.slice(23,27)),
     "high_alarm": parseInt(data.slice(35,36), 16),
     "low_alarm": parseInt(data.slice(39,40), 16),
   };
