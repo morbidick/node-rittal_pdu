@@ -95,7 +95,7 @@ var status_to_object = function(data) {
     "id": parseInt(data.slice(1,3)),
     "name": remove_right_padding(data.slice(6,16)),
     "plug_states": hex_to_bitmap(data.slice(30,32)),
-    "power_consumption": parseInt(data.slice(23,27)),
+    "power_consumption": parseInt(data.slice(23,27), 16),
     "high_alarm": parseInt(data.slice(35,36), 16),
     "low_alarm": parseInt(data.slice(39,40), 16),
   };
