@@ -151,7 +151,7 @@ module.exports = {
     var timeoutHandler = function () {
       serialPort.removeListener("data", dataHandler);
       if (typeof(callback) === 'function') {
-        callback(timeout_error);
+        callback(timeout_error, false);
       }
     };
 
@@ -188,7 +188,7 @@ module.exports = {
         clearTimeout(timeout);
         serialPort.removeListener("data", dataHandler);
         if (typeof(callback) === 'function') {
-          callback(false);
+          callback(false, {"id": id, "name": name, "plug_states": plug_states, "high_alarm": high_alarm, "low_alarm": low_alarm});
         }
       }
     };
@@ -196,7 +196,7 @@ module.exports = {
     var timeoutHandler = function () {
       serialPort.removeListener("data", dataHandler);
       if (typeof(callback) === 'function') {
-        callback(timeout_error);
+        callback(timeout_error, false);
       }
     };
 
