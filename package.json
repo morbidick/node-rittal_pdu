@@ -19,6 +19,6 @@
     }
   ],
   "dependencies": {
-    "serialport": "~1.4.6"
+    "serialport": "~6.2.1"
   }
 }
