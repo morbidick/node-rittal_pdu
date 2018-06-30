@@ -1,6 +1,8 @@
 NodeJS Rittal PDU package
 ============================
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/morbidick/node-rittal_pdu.svg)](https://greenkeeper.io/)
+
 Simple module to control Rittal PDU power plugs.
 
 How to use
